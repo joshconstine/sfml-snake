@@ -71,6 +71,7 @@ class Apple {
 Apple::Apple(int maxWidth, int maxHeight ) {
 	
 	appleShape.setSize(sf::Vector2f(gridSize, gridSize));
+	appleShape.setFillColor(sf::Color::Red);
 	respawn(maxWidth, maxHeight);
 }
 void Apple::render(sf::RenderWindow& window) {
