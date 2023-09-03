@@ -31,7 +31,22 @@ Snake::Snake() {
 	head.setPosition((rows / 2) * gridSize, (columns / 2) * gridSize);
 	segments.push_back(head);
 }
-void Snake::move() {}
+void Snake::move() {
+	int gridSize = 20;
+	if (segments.empty()) {
+		return;
+	}
+
+	sf::Vector2f headPosition = segments.front().getPosition();
+	headPosition.x += direction.x * gridSize;
+	headPosition.y += direction.y * gridSize;
+
+	sf::RectangleShape newHead(sf::Vector2f(gridSize, gridSize));
+	newHead.setPosition(headPosition);
+
+	segments.insert(segments.begin(), newHead);
+	segments.pop_back();
+}
 void Snake::grow() {}
 void Snake::update() {}
 void Snake::render(sf::RenderWindow& window) {
@@ -42,7 +57,7 @@ void Snake::render(sf::RenderWindow& window) {
 int main()
 {
 	sf::RenderWindow window(sf::VideoMode(800, 600), "Snake Game");
-	window.setFramerateLimit(60);
+	window.setFramerateLimit(10);
 	Snake snake;
 	while (window.isOpen())
 	{
@@ -65,6 +80,7 @@ int main()
 
 		}
 
+		snake.move();
 		snake.update();
 		window.clear();
 		int gridSize = 20;  
