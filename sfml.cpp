@@ -3,12 +3,46 @@
 
 using namespace sf;
 int gridSize = 20;
+class Apple {
+	public:
+		Apple(int maxWidth, int maxHeight);
+		void respawn(int maxWidth, int maxHeight);
+		sf::Vector2f getPosition() const;
+		void render(sf::RenderWindow& window);
+
+
+	private:
+		sf::RectangleShape appleShape;
+		sf::Vector2f position;
+};
+
+Apple::Apple(int maxWidth, int maxHeight ) {
+
+	appleShape.setSize(sf::Vector2f(gridSize, gridSize));
+	appleShape.setFillColor(sf::Color::Red);
+	respawn(maxWidth, maxHeight);
+}
+void Apple::render(sf::RenderWindow& window) {
+	window.draw(appleShape);
+}
+
+void Apple::respawn(int maxWidth, int maxHeight) {
+	int x = rand() % (maxWidth / gridSize) * gridSize;
+	int y = rand() % (maxHeight / gridSize) * gridSize;
+
+	position = sf::Vector2f(x, y);
+	appleShape.setPosition(position);
+}
+
+sf::Vector2f Apple::getPosition() const {
+	return position;
+}
 class Snake {
 	public:
 		Snake();
 		void move();
 		void grow();
-		void update();
+		void update(Apple& apple);
 		void render(sf::RenderWindow& window);
 		sf::Vector2f getDirection() const;  
 		void setDirection(const sf::Vector2f& newDirection);  
@@ -48,46 +82,41 @@ void Snake::move() {
 	segments.insert(segments.begin(), newHead);
 	segments.pop_back();
 }
-void Snake::grow() {}
-void Snake::update() {}
+void Snake::grow() {
+	if (segments.empty()) {
+		return;
+	}
+
+	sf::Vector2f lastSegmentPosition = segments.back().getPosition();
+	sf::RectangleShape newSegment(sf::Vector2f(gridSize, gridSize));
+	newSegment.setPosition(lastSegmentPosition.x - gridSize, lastSegmentPosition.y);
+	segments.push_back(newSegment);
+
+}
+void Snake::update(Apple& apple) {
+	sf::Vector2f headPosition = segments.front().getPosition();
+	for (size_t i = 1; i < segments.size(); ++i) {
+		if (headPosition == segments[i].getPosition()) {
+			return;
+		}
+	}
+
+	if (headPosition.x < 0 || headPosition.x >= 800 || headPosition.y < 0 || headPosition.y >= 600) {
+		return;
+	}
+
+	sf::Vector2f applePosition = apple.getPosition();
+	if (headPosition == applePosition) {
+		grow();
+		apple.respawn(800, 600);
+	}
+	move();
+}
+
 void Snake::render(sf::RenderWindow& window) {
 	for (const sf::RectangleShape& segment : segments) {
 		window.draw(segment);
 	}
-}
-class Apple {
-	public:
-		Apple(int maxWidth, int maxHeight);
-		void respawn(int maxWidth, int maxHeight);
-		sf::Vector2f getPosition() const;
-		 void render(sf::RenderWindow& window);
-
-
-	private:
-		sf::RectangleShape appleShape;
-		sf::Vector2f position;
-};
-
-Apple::Apple(int maxWidth, int maxHeight ) {
-	
-	appleShape.setSize(sf::Vector2f(gridSize, gridSize));
-	appleShape.setFillColor(sf::Color::Red);
-	respawn(maxWidth, maxHeight);
-}
-void Apple::render(sf::RenderWindow& window) {
-    window.draw(appleShape);
-}
-
-void Apple::respawn(int maxWidth, int maxHeight) {
-	int x = rand() % (maxWidth / gridSize) * gridSize;
-	int y = rand() % (maxHeight / gridSize) * gridSize;
-
-	position = sf::Vector2f(x, y);
-	appleShape.setPosition(position);
-}
-
-sf::Vector2f Apple::getPosition() const {
-	return position;
 }
 int main()
 {
@@ -116,8 +145,7 @@ int main()
 
 		}
 
-		snake.move();
-		snake.update();
+		snake.update(apple);
 		window.clear();
 		int gridSize = 20;  
 		int rows = window.getSize().y / gridSize;
