@@ -2,6 +2,7 @@
 
 
 using namespace sf;
+int gridSize = 20;
 class Snake {
 	public:
 		Snake();
@@ -54,11 +55,45 @@ void Snake::render(sf::RenderWindow& window) {
 		window.draw(segment);
 	}
 }
+class Apple {
+	public:
+		Apple(int maxWidth, int maxHeight);
+		void respawn(int maxWidth, int maxHeight);
+		sf::Vector2f getPosition() const;
+		 void render(sf::RenderWindow& window);
+
+
+	private:
+		sf::RectangleShape appleShape;
+		sf::Vector2f position;
+};
+
+Apple::Apple(int maxWidth, int maxHeight ) {
+	
+	appleShape.setSize(sf::Vector2f(gridSize, gridSize));
+	respawn(maxWidth, maxHeight);
+}
+void Apple::render(sf::RenderWindow& window) {
+    window.draw(appleShape);
+}
+
+void Apple::respawn(int maxWidth, int maxHeight) {
+	int x = rand() % (maxWidth / gridSize) * gridSize;
+	int y = rand() % (maxHeight / gridSize) * gridSize;
+
+	position = sf::Vector2f(x, y);
+	appleShape.setPosition(position);
+}
+
+sf::Vector2f Apple::getPosition() const {
+	return position;
+}
 int main()
 {
 	sf::RenderWindow window(sf::VideoMode(800, 600), "Snake Game");
 	window.setFramerateLimit(10);
 	Snake snake;
+	Apple apple(800, 600);
 	while (window.isOpen())
 	{
 		sf::Event event;
@@ -97,6 +132,7 @@ int main()
 			}
 		}
 		snake.render(window);
+		apple.render(window);
 		window.display();
 	}
 
