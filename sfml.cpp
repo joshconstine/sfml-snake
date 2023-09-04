@@ -1,8 +1,50 @@
 #include <SFML/Graphics.hpp>
-
+#include <iostream>
+#include <sstream>
 
 using namespace sf;
 int gridSize = 20;
+class Score {
+	public:
+		Score(); // Constructor to initialize the score to 0
+		void increment(int points); // Increment the score by a specified number of points
+		int getScore() const; // Get the current score
+		void reset(); // Reset the score to 0
+		void draw(sf::RenderWindow& window);
+	private:
+		int score;
+		sf::Font font; // Font for rendering text
+		sf::Text text; // Text object for displaying the score
+};
+
+Score::Score() : score(0) {
+	font.loadFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf");
+
+	text.setFont(font);
+	text.setCharacterSize(24);
+	text.setFillColor(sf::Color::Red);
+	text.setPosition(10, 10); // Set the position of the text
+}
+
+void Score::increment(int points) {
+	score += points;
+}
+
+int Score::getScore() const {
+	return score;
+}
+
+void Score::reset() {
+	score = 0;
+}
+void Score::draw(sf::RenderWindow& window) {
+	std::stringstream ss;
+	ss << "Score: " << score;
+
+	text.setString(ss.str());
+
+	window.draw(text);
+}
 class Apple {
 	public:
 		Apple(int maxWidth, int maxHeight);
@@ -42,7 +84,7 @@ class Snake {
 		Snake();
 		void move();
 		void grow();
-		void update(Apple& apple);
+		void update(Apple& apple, Score& score);
 		void render(sf::RenderWindow& window);
 		sf::Vector2f getDirection() const;  
 		void setDirection(const sf::Vector2f& newDirection);  
@@ -93,7 +135,7 @@ void Snake::grow() {
 	segments.push_back(newSegment);
 
 }
-void Snake::update(Apple& apple) {
+void Snake::update(Apple& apple, Score& score) {
 	sf::Vector2f headPosition = segments.front().getPosition();
 	for (size_t i = 1; i < segments.size(); ++i) {
 		if (headPosition == segments[i].getPosition()) {
@@ -108,6 +150,7 @@ void Snake::update(Apple& apple) {
 	sf::Vector2f applePosition = apple.getPosition();
 	if (headPosition == applePosition) {
 		grow();
+		score.increment(1);
 		apple.respawn(800, 600);
 	}
 	move();
@@ -122,6 +165,7 @@ int main()
 {
 	sf::RenderWindow window(sf::VideoMode(800, 600), "Snake Game");
 	window.setFramerateLimit(10);
+	Score score;
 	Snake snake;
 	Apple apple(800, 600);
 	while (window.isOpen())
@@ -144,9 +188,9 @@ int main()
 			}
 
 		}
-
-		snake.update(apple);
+		snake.update(apple, score);
 		window.clear();
+		score.draw(window);
 		int gridSize = 20;  
 		int rows = window.getSize().y / gridSize;
 		int columns = window.getSize().x / gridSize;
